@@ -1,0 +1,20 @@
+services:
+  arc:
+    build: .
+    ports:
+      - "127.0.0.1:3132:3132"
+    environment:
+      ARC_ENV: production
+      ARC_BIND: 0.0.0.0
+      ARC_PORT: 3132
+      ARC_PRIVACY_MODE: "on"
+      ARC_AUTH_TOKEN: ${ARC_AUTH_TOKEN:?Set ARC_AUTH_TOKEN}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ARC_MODEL: ${ARC_MODEL:-gpt-5.6-luna}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      ARC_DISCORD_CHANNEL_ID: ${ARC_DISCORD_CHANNEL_ID:-}
+    volumes:
+      - arc_data:/app/data
+    restart: unless-stopped
+volumes:
+  arc_data:
