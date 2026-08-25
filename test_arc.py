@@ -90,4 +90,17 @@ class ArcTests(unittest.TestCase):
         self.assertEqual(pay["tool_result"]["wallet_action"]["amount"],"5")
         self.assertNotIn("submit",pay["tool_result"]["wallet_action"])
 
+    def test_19_wallet_rejects_markup_in_amount(self):
+        item = {"hash": "0x" + "1" * 64, "walletAddress": "0x" + "2" * 40,
+                "recipient": "0x" + "3" * 40, "chainId": 84532,
+                "asset": "ETH", "amount": '<img src=x onerror=alert(1)>', "status": "pending"}
+        with self.assertRaisesRegex(ValueError, "Invalid transaction amount"):
+            arc_wallet.record_transaction(item)
+
+    def test_20_wallet_ui_escapes_dynamic_html(self):
+        script = (core.ROOT / "assets" / "wallet.js").read_text(encoding="utf-8")
+        self.assertIn("const escapeHtml=", script)
+        self.assertIn("recipient:escapeHtml(i.recipient)", script)
+        self.assertIn("amount:escapeHtml(i.amount)", script)
+
 if __name__ == "__main__": unittest.main(verbosity=2)

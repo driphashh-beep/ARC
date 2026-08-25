@@ -52,6 +52,9 @@ def record_transaction(item: dict[str, Any]) -> dict[str, Any]:
     if chain_id not in NETWORKS: raise ValueError("Unsupported network.")
     asset = str(item.get("asset", "")).upper()
     if asset not in {"ETH", "USDC"}: raise ValueError("Unsupported asset.")
+    amount = str(item.get("amount", "")).strip()
+    if not re.fullmatch(r"(?:0|[1-9]\d*)(?:\.\d{1,18})?", amount) or len(amount) > 80:
+        raise ValueError("Invalid transaction amount.")
     status = str(item.get("status", "pending")).lower()
     if status not in {"pending", "confirmed", "failed"}: raise ValueError("Invalid transaction status.")
     network = NETWORKS[chain_id]
@@ -59,7 +62,7 @@ def record_transaction(item: dict[str, Any]) -> dict[str, Any]:
     con = core.db(); con.execute("""INSERT INTO wallet_transactions
         (hash,created,wallet_address,chain_id,asset,amount,recipient,status,explorer_url)
         VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(hash) DO UPDATE SET status=excluded.status""",
-        (tx_hash, core.now(), address, chain_id, asset, str(item.get("amount", ""))[:80], recipient, status, explorer))
+        (tx_hash, core.now(), address, chain_id, asset, amount, recipient, status, explorer))
     con.commit(); con.close()
     return {"ok": True, "explorerUrl": explorer}
 
